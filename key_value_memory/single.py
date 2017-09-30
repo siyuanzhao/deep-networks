@@ -4,10 +4,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from data_utils import load_task, vectorize_data
-from sklearn import cross_validation, metrics
+from sklearn import model_selection, metrics
 from memn2n_kv import MemN2N_KV
 from itertools import chain
 from six.moves import range
+from functools import reduce
 
 import tensorflow as tf
 import numpy as np
@@ -44,7 +45,7 @@ vocab = sorted(reduce(lambda x, y: x | y, (set(list(chain.from_iterable(s)) + q 
 word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
 
 max_story_size = max(map(len, (s for s, _, _ in data)))
-mean_story_size = int(np.mean(map(len, (s for s, _, _ in data))))
+mean_story_size = int(np.mean(list(map(len, (s for s, _, _ in data)))))
 sentence_size = max(map(len, chain.from_iterable(s for s, _, _ in data)))
 query_size = max(map(len, (q for _, q, _ in data)))
 memory_size = min(FLAGS.memory_size, max_story_size)
@@ -57,7 +58,7 @@ print("Average story length", mean_story_size)
 
 # train/validation/test sets
 S, Q, A = vectorize_data(train, word_idx, sentence_size, memory_size)
-trainS, valS, trainQ, valQ, trainA, valA = cross_validation.train_test_split(S, Q, A, test_size=.1)
+trainS, valS, trainQ, valQ, trainA, valA = model_selection.train_test_split(S, Q, A, test_size=.1)
 testS, testQ, testA = vectorize_data(test, word_idx, sentence_size, memory_size)
 
 print("Training set shape", trainS.shape)
@@ -76,7 +77,7 @@ test_labels = np.argmax(testA, axis=1)
 val_labels = np.argmax(valA, axis=1)
 
 batch_size = FLAGS.batch_size
-batches = zip(range(0, n_train-batch_size, batch_size), range(batch_size, n_train, batch_size))
+batches = list(zip(range(0, n_train-batch_size, batch_size), range(batch_size, n_train, batch_size)))
 
 with tf.Graph().as_default():
     session_conf = tf.ConfigProto(
@@ -110,7 +111,7 @@ with tf.Graph().as_default():
                 nil_grads_and_vars.append((g, v))
 
         train_op = optimizer.apply_gradients(nil_grads_and_vars, name="train_op", global_step=global_step)
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
 
         def train_step(s, q, a):
             feed_dict = {
