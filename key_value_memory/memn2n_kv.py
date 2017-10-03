@@ -94,7 +94,7 @@ class MemN2N_KV(object):
         self._hops = hops
         self._name = name
         self._memory_value_size = memory_value_size
-        self._encoding = tf.constant(position_encoding(self._story_size, self._embedding_size), name="encoding")
+        self._encoding = tf.constant(position_encoding(self._query_size, self._embedding_size), name="encoding")
         self._reader = reader
         self._build_inputs()
 
@@ -203,11 +203,11 @@ class MemN2N_KV(object):
 
     def _build_inputs(self):
         with tf.name_scope("input"):
-            self._memory_key = tf.placeholder(tf.int32, [None, self._memory_value_size, self._story_size], name='memory_key')
+            self._memory_key = tf.placeholder(tf.int32, [None, self._memory_value_size, self._query_size], name='memory_key')
             
             self._query = tf.placeholder(tf.int32, [None, self._query_size], name='question')
 
-            self._memory_value = tf.placeholder(tf.int32, [None, self._memory_value_size, self._story_size], name='memory_value')
+            self._memory_value = tf.placeholder(tf.int32, [None, self._memory_value_size, self._query_size], name='memory_value')
 
             self._labels = tf.placeholder(tf.float32, [None, self._vocab_size], name='answer')
             self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')

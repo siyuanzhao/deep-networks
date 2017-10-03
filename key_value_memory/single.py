@@ -93,7 +93,7 @@ with tf.Graph().as_default():
     with tf.Session() as sess:
         
         model = MemN2N_KV(batch_size=batch_size, vocab_size=vocab_size,
-                          query_size=sentence_size, story_size=sentence_size, memory_key_size=memory_size,
+                          query_size=sentence_size, story_size=max_story_size, memory_key_size=memory_size,
                           feature_size=FLAGS.feature_size, memory_value_size=memory_size,
                           embedding_size=FLAGS.embedding_size, hops=FLAGS.hops, reader=FLAGS.reader,
                           l2_lambda=FLAGS.l2_lambda)
